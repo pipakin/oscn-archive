@@ -1,0 +1,42 @@
+{
+  "name": "oscn-archive",
+  "version": "1.0.0",
+  "description": "An archive for oscn data.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "cross-env GOOGLE_APPLICATION_CREDENTIALS=creds.json babel-node src/index.js",
+    "test": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pipakin/oscn-archive.git"
+  },
+  "keywords": [
+    "oscn",
+    "case",
+    "court",
+    "oklahoma",
+    "archive"
+  ],
+  "author": "Philip Kin",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/pipakin/oscn-archive/issues"
+  },
+  "homepage": "https://github.com/pipakin/oscn-archive#readme",
+  "devDependencies": {
+    "babel-cli": "^6.24.0",
+    "babel-preset-es2015": "^6.24.0",
+    "babel-register": "^6.24.0",
+    "chai": "^3.5.0",
+    "cross-env": "^3.2.4",
+    "mocha": "^3.2.0",
+    "sinon": "^2.0.0",
+    "sinon-chai": "^2.8.0"
+  },
+  "dependencies": {
+    "@google-cloud/datastore": "^0.7.1",
+    "jsdom": "9.9.1",
+    "wordwrap": "^1.0.0"
+  }
+}
