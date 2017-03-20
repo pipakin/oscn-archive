@@ -38,3 +38,6 @@ jspm_packages
 
 #Google creds
 creds.json
+
+#exported stuff
+CF*.json

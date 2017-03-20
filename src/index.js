@@ -1,6 +1,8 @@
 import {getCaseInformation} from "./caseRetriever";
 import Datastore from "@google-cloud/datastore";
 import _ from "lodash";
+import fs from "fs";
+import app from "commander";
 const projectId = "blissful-canyon-138323";
 
 const datastore = Datastore({
@@ -17,24 +19,46 @@ function archiveCase(caseNumber, county) {
   .then(() => console.log(`Saved case ${caseNumber} from county ${county} to Datastore.`));
 }
 
-const start = 1000;
-const end = 5000;
-
 let promiseChain = Promise.resolve();
 
-function archiveTulsaCaseNum(i) {
-  var caseNum = `CF-2017-${i}`;
+function archiveTulsaCaseNum(year, i) {
+  var caseNum = `CF-${year}-${i}`;
   promiseChain = promiseChain.then(() => console.log(`Archiving ${caseNum}...`) || archiveCase(caseNum, "tulsa"));
 }
 
 function deleteArchiveItem(i) {
-  var caseNum = `CF-2017-${i}`;
+  var caseNum = `CF-${year}-${i}`;
   promiseChain = promiseChain.then(() => console.log(`Purging ${caseNum}...`) || datastore.delete(datastore.key([`tulsa county case`, caseNum])));
 }
 
-for(var i=start;i<=end;i++) {
-  archiveTulsaCaseNum(i);
-  //deleteArchiveItem(i);
-}
+app
+  .version("1.0.0");
+app
+  .command("archive <year> <start> <end>")
+  .description("Archive cases from the provided year, from start to end.")
+  .action((year, start, end) => {
+    for(var i=parseInt(start);i<=parseInt(end);i++) {
+      archiveTulsaCaseNum(i);
+    }
+    promiseChain.then(() => console.log(`Completed archive of cases CF-${year}-${start} to CF-${year}-${end}`));
+  });
 
-promiseChain.then(() => console.log(`Completed archive of cases CF-2016-${start} to CF-2016-${end}`));
+app
+  .command("purge <year> <start> <end>")
+  .description("Purge cases from the provided year, from start to end.")
+  .action((year, start, end) => {
+    for(var i=parseInt(start);i<=parseInt(end);i++) {
+      deleteArchiveItem(i);
+    }
+    promiseChain.then(() => console.log(`Completed purge of cases CF-${year}-${start} to CF-${year}-${end}`));
+  });
+
+app
+  .command("export <caseNumber>")
+  .description("Export the provided case to a file")
+  .action((caseNumber) => {
+    getCaseInformation(caseNumber, "tulsa")
+      .then(caseInfo => fs.writeFileSync(caseNumber + ".json", JSON.stringify(caseInfo, null, 4)))
+  });
+
+app.parse(process.argv);

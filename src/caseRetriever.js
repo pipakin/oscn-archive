@@ -16,12 +16,12 @@ function readCountOffenseDate(description) {
 function readCountDispositions($, countContainer) {
   var dispositionTable = countContainer.find("table").eq(1);
   if(!dispositionTable) return null;
-  const disposition = {};
 
-  return dispositionTable.find("tr:has(td)").map(tr => {
-    disposition.party = dispositionTable.find("td").eq(1).text().trim();
+  return dispositionTable.find("tr:has(td)").get().map(tr => {
+    const disposition = {};
+    disposition.party = $(tr).find("td").eq(1).text().trim();
 
-    const dispositionInfo = dispositionTable.find("td").eq(2).text().trim().replace(/\s+/g, " ");
+    const dispositionInfo = $(tr).find("td").eq(2).text().trim().replace(/\s+/g, " ");
     //disposition.info = dispositionInfo;
     const infoMatch = dispositionInfo.match(/Disposed:\s+(\w+),\s+(\d+\/\d+\/\d+)\.\s+(.+)\s+Count as Disposed:(.+)/i);
 
@@ -31,7 +31,7 @@ function readCountDispositions($, countContainer) {
     disposition.countAsDisposed = infoMatch ? infoMatch[4] : null;
 
     return disposition;
-  }).get();
+  });
 }
 
 const readCount = ($) => function() {
@@ -76,7 +76,7 @@ export function getCaseInformation(caseNumber, county) {
             description: $(row.find("td")[2]).text().replace(/\s+/g, ' ').trim(),
             count: parseInt($(row.find("td")[3]).text().replace(/\s+/g, ' ').trim()),
             party: $(row.find("td")[4]).text().replace(/\s+/g, ' ').trim(),
-            amount: parseFloat($(row.find("td")[5]).text().replace(/\s+/g, ' ').trim())
+            amount: parseFloat($(row.find("td")[5]).text().replace(/\s+/g, ' ').replace("$", "").trim())
           }
 
           if(docket.description.length > 1000) {
@@ -115,6 +115,7 @@ export function getCaseInformation(caseNumber, county) {
         var caseData = {
           parties,
           dockets,
+          events,
           counts: readCounts(window, $)
         };
 

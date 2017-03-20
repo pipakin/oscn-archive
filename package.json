@@ -36,6 +36,8 @@
   },
   "dependencies": {
     "@google-cloud/datastore": "^0.7.1",
+    "commander": "^2.9.0",
+    "inquirer": "^3.0.6",
     "jsdom": "9.9.1",
     "wordwrap": "^1.0.0"
   }
