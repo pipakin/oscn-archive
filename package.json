@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "cross-env GOOGLE_APPLICATION_CREDENTIALS=creds.json babel-node src/index.js",
-    "test": "npm test"
+    "test": "mocha"
   },
   "repository": {
     "type": "git",

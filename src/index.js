@@ -26,7 +26,7 @@ function archiveTulsaCaseNum(year, i) {
   promiseChain = promiseChain.then(() => console.log(`Archiving ${caseNum}...`) || archiveCase(caseNum, "tulsa"));
 }
 
-function deleteArchiveItem(i) {
+function deleteArchiveItem(year, i) {
   var caseNum = `CF-${year}-${i}`;
   promiseChain = promiseChain.then(() => console.log(`Purging ${caseNum}...`) || datastore.delete(datastore.key([`tulsa county case`, caseNum])));
 }
@@ -38,7 +38,7 @@ app
   .description("Archive cases from the provided year, from start to end.")
   .action((year, start, end) => {
     for(var i=parseInt(start);i<=parseInt(end);i++) {
-      archiveTulsaCaseNum(i);
+      archiveTulsaCaseNum(year, i);
     }
     promiseChain.then(() => console.log(`Completed archive of cases CF-${year}-${start} to CF-${year}-${end}`));
   });
@@ -48,7 +48,7 @@ app
   .description("Purge cases from the provided year, from start to end.")
   .action((year, start, end) => {
     for(var i=parseInt(start);i<=parseInt(end);i++) {
-      deleteArchiveItem(i);
+      deleteArchiveItem(year, i);
     }
     promiseChain.then(() => console.log(`Completed purge of cases CF-${year}-${start} to CF-${year}-${end}`));
   });
