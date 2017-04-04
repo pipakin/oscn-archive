@@ -16,7 +16,8 @@ function archiveCase(caseNumber, county) {
     key: datastore.key([`${county} county case`, caseNumber]),
     data: caseInfo
   })).then(entity => datastore.save(entity))
-  .then(() => console.log(`Saved case ${caseNumber} from county ${county} to Datastore.`));
+  .then(() => console.log(`Saved case ${caseNumber} from county ${county} to Datastore.`))
+  .catch(err => console.log(`Failed to save case ${caseNumber} from county ${county} to Datastore: ${err}.`));
 }
 
 let promiseChain = Promise.resolve();

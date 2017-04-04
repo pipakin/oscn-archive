@@ -21,7 +21,8 @@ function readCountDispositions($, countContainer) {
     const disposition = {};
     disposition.party = $(tr).find("td").eq(1).text().trim();
 
-    const dispositionInfo = $(tr).find("td").eq(2).text().trim().replace(/\s+/g, " ");
+    const dispositionInfoCell = $(tr).find("td").eq(2)
+    const dispositionInfo = dispositionInfoCell.text().trim().replace(/\s+/g, " ");
     //disposition.info = dispositionInfo;
     const infoMatch = dispositionInfo.match(/Disposed:\s+(\w+),\s+(\d+\/\d+\/\d+)\.\s+(.+)\s+Count as Disposed:(.+)/i);
 
@@ -73,17 +74,16 @@ export function getCaseInformation(caseNumber, county) {
           var docket = {
             date: $(row.find("td")[0]).text().replace(/\s+/g, ' ').trim(),
             code: $(row.find("td")[1]).text().replace(/\s+/g, ' ').trim(),
+            color: ($(row.find("td")[2]).find("font").attr("color") || "BLACK").toUpperCase(),
             description: $(row.find("td")[2]).text().replace(/\s+/g, ' ').trim(),
             count: parseInt($(row.find("td")[3]).text().replace(/\s+/g, ' ').trim()),
             party: $(row.find("td")[4]).text().replace(/\s+/g, ' ').trim(),
             amount: parseFloat($(row.find("td")[5]).text().replace(/\s+/g, ' ').replace("$", "").trim())
           }
 
-          if(docket.description.length > 1000) {
-            docket.description = wrap($(row.find("td")[2]).text()).split("\n").map(x =>
-              x.replace(/\s+/g, ' ').trim()
-            ).filter(x => x !== "");
-          }
+          docket.description = wrap($(row.find("td")[2]).text()).split("\n").map(x =>
+            x.replace(/\s+/g, ' ').trim()
+          ).filter(x => x !== "");
 
           dockets.push(docket);
         });
