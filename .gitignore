@@ -41,3 +41,5 @@ creds.json
 
 #exported stuff
 CF*.json
+CM*.json
+TR*.json

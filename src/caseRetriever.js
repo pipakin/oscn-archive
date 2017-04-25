@@ -52,6 +52,32 @@ function readCounts(window, $) {
   return $("div.CountsContainer").map(readCount($)).get();
 }
 
+function camelize(str) {
+  return str.replace(/(?:^\w|[A-Z]|\b\w)/g, function(letter, index) {
+    return index == 0 ? letter.toLowerCase() : letter.toUpperCase();
+  }).replace(/\s+/g, '');
+}
+
+function readCitationInformation(window, $) {
+  const trafficHtml = $("h2.traffic").next("blockquote").html();
+  if(!trafficHtml) return;
+
+  const trafficText = trafficHtml.trim().replace(/<br\/?>/ig, "").split("\n")
+    .map(s => s.trim().split(/\:/))
+    .reduce((agg, kv) => {
+      if(kv.length > 2) {
+        agg[camelize(kv[0])] = kv[1].trim().split("&nbsp;")[0].replace("&nbsp;", "").trim();
+        for(var i=1;i<kv.length-1;i++) {
+          agg[camelize(kv[i].trim().split("&nbsp;&nbsp;&nbsp;")[1].trim())] = kv[i+1].trim().split("&nbsp;")[0].replace("&nbsp;", "").trim();
+        }
+      }else{
+        agg[camelize(kv[0])] = kv[1].trim();
+      }
+      return agg;
+    }, {});
+  return trafficText;
+}
+
 export function getCaseInformation(caseNumber, county) {
   return new Promise(function(resolve, reject) {
     if(!caseNumber || !county) {
@@ -112,12 +138,18 @@ export function getCaseInformation(caseNumber, county) {
           counts: []
         }));
 
+        const traffic = readCitationInformation(window, $);
+
         var caseData = {
           parties,
           dockets,
           events,
           counts: readCounts(window, $)
         };
+
+        if(traffic) {
+          caseData.citation = traffic;
+        }
 
         window.close();
 
