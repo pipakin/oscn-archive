@@ -137,6 +137,7 @@ export function deserializeCitationByCase(caseid) {
 export function deserializeDocketsByCase(caseid) {
     return promisequery("SELECT * FROM dockets WHERE caseid = $1", [caseid])
         .then(dockets => dockets.map(e => Object.assign({}, e, {
+            description: e.description.split('\n'),
             date: moment(e.docket_date).format("dddd, MMMM D, YYYY [at] h:mm A"),
             amount: e.amount ? "$" + e.amount : null
         })));
