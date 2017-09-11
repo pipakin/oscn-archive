@@ -7,7 +7,7 @@ import pg from 'pg';
 var config = {
   user: 'postgres', //env var: PGUSER
   database: 'oscn_archive', //env var: PGDATABASE
-  password: 'postgres', //env var: PGPASSWORD
+  password: process.env.PGPASSWORD || 'postgres', //env var: PGPASSWORD
   host: 'localhost', // Server hosting the postgres database
   port: 5432, //env var: PGPORT
   max: 10, // max number of clients in the pool

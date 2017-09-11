@@ -58,17 +58,31 @@ const dataStores = {
 }
 
 function transferCase(caseNumber, county, source, dest) {
-  return source.readCase(caseNumber.county)
-    .then(caseData => dest.wrtieCase(caseData, caseNumber, county))
+  return source.readCase(caseNumber, county)
+    .then(caseData => dest.writeCase(caseData, caseNumber, county))
     .then(() => console.log(`Saved case ${caseNumber} from county ${county} to ${dest.description} from ${source.description}.`))
     .catch(err => console.log(`Failed to save case ${caseNumber} from county ${county} to ${dest.description} from ${source.description}: ${err}.`));
 }
 
 let promiseChain = Promise.resolve();
 
-function transferCaseNum(year, i, type, county, source, dest) {
+function transferCaseNumBatch(year, i, type, county, source, dest, concurrent, end) {
+    promiseChain = promiseChain.then(() => {
+        var proms = [];
+        for(var n=i;n<end && n<i+concurrent;n++) {
+            proms.push(transferCaseNumProm(year, n, type, county, source, dest));
+        }
+        return Promise.all(proms);
+    });
+}
+
+function transferCaseNumProm(year, i, type, county, source, dest) {
     var caseNum = `${type}-${year}-${i}`;
-    promiseChain = promiseChain.then(() => console.log(`Archiving ${caseNum}...`) || transferCase(caseNum, county, source, dest));
+    return Promise.resolve().then(() => console.log(`Archiving ${caseNum}...`) || transferCase(caseNum, county, source, dest));
+}
+
+function transferCaseNum(year, i, type, county, source, dest) {
+    promiseChain = promiseChain.then(() => transferCaseNumProm(year, i, type, county, source, dest));
 }
 
 function deleteArchiveItem(year, i) {
@@ -83,14 +97,32 @@ app.command("archive <year> <start> <end>")
     .option("-d, --destination <dest>", "Destination to send data to (google or postgres) (Default: google)", "google")
     .option("-t, --type <type>", "Type of the case (CF, CM, TR, etc) (Default: CF)", "CF")
     .option("-c, --county <county>", "County of the case (tulsa, oklahoma, etc) (Default: tulsa)", "tulsa")
+    .option("-n, --concurrent <number>", "Numnber of concurrent requests (Default: 1)", "1")
     .action((year, start, end, args) => {
-        for(var i=parseInt(start);i<=parseInt(end);i++) {
-            transferCaseNum(year, i, args.type, args.county, dataStores[args.source], dataStores[args.dest]);
+        for(var i=parseInt(start);i<=parseInt(end);i+=parseInt(args.concurrent)) {
+            transferCaseNumBatch(year, i, args.type, args.county, dataStores[args.source], dataStores[args.destination], parseInt(args.concurrent), parseInt(end));
         }
         promiseChain
             .then(() => console.log(`Completed archive of cases ${args.type}-${year}-${start} to ${args.type}-${year}-${end}`))
             .then(dataStores[args.source].cleanup)
-            .then(dataStores[args.dest].cleanup);
+            .then(dataStores[args.destination].cleanup);
+    });
+app.command("archive-count <year> <start> <count>")
+    .description("Archive cases from the provided year, from start to end.")
+    .option("-s, --source <source>", "Source to pull data from (oscn, google, or postgres) (Default: oscn)", "oscn")
+    .option("-d, --destination <dest>", "Destination to send data to (google or postgres) (Default: google)", "google")
+    .option("-t, --type <type>", "Type of the case (CF, CM, TR, etc) (Default: CF)", "CF")
+    .option("-c, --county <county>", "County of the case (tulsa, oklahoma, etc) (Default: tulsa)", "tulsa")
+    .option("-n, --concurrent <number>", "Numnber of concurrent requests (Default: 1)", "1")
+    .action((year, start, count, args) => {
+        const end = parseInt(start) + parseInt(count);
+        for(var i=parseInt(start);i<=parseInt(end);i+=parseInt(args.concurrent)) {
+            transferCaseNumBatch(year, i, args.type, args.county, dataStores[args.source], dataStores[args.destination], parseInt(args.concurrent), parseInt(end));
+        }
+        promiseChain
+            .then(() => console.log(`Completed archive of cases ${args.type}-${year}-${start} to ${args.type}-${year}-${end}`))
+            .then(dataStores[args.source].cleanup)
+            .then(dataStores[args.destination].cleanup);
     });
 
 app.command("purge <year> <start> <end>")
