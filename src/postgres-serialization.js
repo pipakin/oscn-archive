@@ -269,12 +269,30 @@ export function deserializeAllParties(pageSize, page, pageToken) {
     return deserializePaged("name, type, array_agg(caseid) as caseids", "parties", "GROUP BY name, type", [], promisequery, pageSize, page, pageToken)
 }
 
-export function deserializeByYear(county, year, pageSize, page, pageToken) {
-    return deserializePaged("*", "cases", "WHERE year = $1 AND county = $2", [year, county], deserializeCases, pageSize, page, pageToken);
+function makeJoinString(joins, off) {
+    var str = "";
+    var offset = off;
+    if(joins.partialDocketDescription) str += ` AND EXISTS(SELECT 1 FROM dockets WHERE dockets.caseid = cases.id AND dockets.description ILIKE ${"$"}${offset++})`;
+    if(joins.partialCountDescription) str += ` AND EXISTS(SELECT 1 FROM counts WHERE counts.caseid = cases.id AND counts.description ILIKE ${"$"}${offset++})`;
+    if(joins.partialEventDescription) str += ` AND EXISTS(SELECT 1 FROM events WHERE events.caseid = cases.id AND events.description ILIKE ${"$"}${offset++})`;
+    return str;
 }
 
-export function deserializeAll(county, pageSize, page, pageToken) {
-    return deserializePaged("*", "cases", "WHERE county = $1", [county], deserializeCases, pageSize, page, pageToken);
+function makeJoinArray(joins) {
+    const arr = [];
+    if(joins.partialDocketDescription) arr.push("%" + joins.partialDocketDescription + "%");
+    if(joins.partialCountDescription) arr.push("%" + joins.partialCountDescription + "%");
+    if(joins.partialEventDescription) arr.push("%" + joins.partialEventDescription + "%");
+    return arr;
+}
+
+
+export function deserializeByYear(county, year, pageSize, page, pageToken, joins) {
+    return deserializePaged("*", "cases", "WHERE year = $1 AND county = $2" + makeJoinString(joins, 3), [year, county].concat(makeJoinArray(joins)), deserializeCases, pageSize, page, pageToken);
+}
+
+export function deserializeAll(county, pageSize, page, pageToken, joins) {
+    return deserializePaged("*", "cases", "WHERE county = $1" + makeJoinString(joins, 2), [county].concat(makeJoinArray(joins)), deserializeCases, pageSize, page, pageToken);
 }
 
 export function deserializeCasesByList(ids) {

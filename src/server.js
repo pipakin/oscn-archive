@@ -66,7 +66,7 @@ export function standardQuery(caseNumber, county) {
 export const schema = buildSchema(`
   type Query {
     flattenCases(county: String!, year: String, pageSize: Int, page: Int, pageToken: String): PagedFlattenedCases
-    cases(county: String!, year: String, pageSize: Int, page: Int, pageToken: String): PagedCases
+    cases(county: String!, year: String, pageSize: Int, page: Int, pageToken: String, partialDocketDescription: String, partialCountDescription: String, partialEventDescription: String): PagedCases
     case(county: String!, number: String!): Case
     parties(type: String, name: String, pageSize: Int, page: Int, pageToken: String): PagedGroupedParties
   }
@@ -356,7 +356,11 @@ var root = {
         }
 
         if(args.year) {
-            return mapPropPaged(deserializeByYear(args.county, args.year, args.pageSize, args.page, args.pageToken), {
+            return mapPropPaged(deserializeByYear(args.county, args.year, args.pageSize, args.page, args.pageToken, {
+                partialDocketDescription: args.partialDocketDescription,
+                partialCountDescription: args.partialCountDescription,
+                partialEventDescription: args.partialEventDescription
+            }), {
                 counts,
                 parties,
                 events,
@@ -365,7 +369,11 @@ var root = {
             });
         }
 
-        return mapPropPaged(deserializeAll(args.county, args.pageSize, args.page, args.pageToken), {
+        return mapPropPaged(deserializeAll(args.county, args.pageSize, args.page, args.pageToken, {
+            partialDocketDescription: args.partialDocketDescription,
+            partialCountDescription: args.partialCountDescription,
+            partialEventDescription: args.partialEventDescription
+        }), {
             counts,
             parties,
             events,
